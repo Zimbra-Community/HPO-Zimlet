@@ -41,12 +41,20 @@ var HPOZimlet = tk_barrydegraaff_performance_meeting_HandlerObject;
  */
 HPOZimlet.prototype.init = function() {
 try {
-   AjxDispatcher.require(["Calendar", "TinyMCE", "CalendarAppt"]);
+   AjxDispatcher.require(["Calendar", "TinyMCE", "CalendarAppt","PreferencesCore","Preferences"]);
 } catch (err) { console.log('HPOZimlet err'+err);}
 };
 
 HPOZimlet.prototype.onShowView = function(view) {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('tk_barrydegraaff_performance_meeting').handlerObject;
+
+   ZmPref.registerPref("CAL_DEFAULT_APPT_DURATION", {
+   displayName:		ZmMsg.defaultApptDuration,
+   displayContainer:	ZmPref.TYPE_SELECT,
+   displayOptions:		["25","30","50","60","75","90","100","120"],
+   options:			["1500", "1800", "3000", "3600", "4500", "5400", "6000", "7200"]
+   });   
+
    if(view.indexOf('APPT')>-1)
    {
 
