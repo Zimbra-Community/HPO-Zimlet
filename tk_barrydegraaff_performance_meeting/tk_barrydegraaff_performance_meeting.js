@@ -288,44 +288,48 @@ HPOZimlet.prototype.status =
 
 
 HPOZimlet.prototype._closeBtnListener = function() {
-   //Check for changes in the notes fields, throw away w/p confirmation if there is no change 
-   var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
+   //Check for changes in the notes fields, throw away w/p confirmation if there is no change
+   try { 
+      var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
+      
+      //Get active content maybe changed by user
+      var notesFieldsContent = tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
+      notesFieldsContent += tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
+      
+      //Get content as it was before the user may have changed it
+      var originalNotesContent = document.getElementById('HPOZimletTextAreaPurposeOriginal'+targetHTMLId).value +document.getElementById('HPOZimletTextAreaDecisionsOriginal'+targetHTMLId).value;
    
-   //Get active content maybe changed by user
-   var notesFieldsContent = tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
-   notesFieldsContent += tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
+      if(notesFieldsContent == originalNotesContent)
+      {
+         this._closeBtnOKListener();
+         return;
+      }
    
-   //Get content as it was before the user may have changed it
-   var originalNotesContent = document.getElementById('HPOZimletTextAreaPurposeOriginal'+targetHTMLId).value +document.getElementById('HPOZimletTextAreaDecisionsOriginal'+targetHTMLId).value;
-
-   if(notesFieldsContent == originalNotesContent)
+      if(notesFieldsContent.length < 24)
+      {
+         this._closeBtnOKListener();
+         return;      
+      }
+      
+      this._deleteConfirmationDialog = new ZmDialog({
+         title: ZmMsg.confirm,
+         parent: this.getShell(),
+         standardButtons: [DwtDialog.OK_BUTTON, DwtDialog.CANCEL_BUTTON],
+         disposeOnPopDown: true
+      });
+      var html = ZmMsg.apptSignificantChangesAttendee;
+   
+      this._deleteConfirmationDialog.setContent(html);
+      this._deleteConfirmationDialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(this, this._closeBtnOKListener));
+      this._deleteConfirmationDialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(this, this._closeBtnCANCELListener));
+      this._deleteConfirmationDialog._tabGroup.addMember(document.getElementById(this._deleteConfirmationDialog._button[1].__internalId));
+      this._deleteConfirmationDialog._tabGroup.addMember(document.getElementById(this._deleteConfirmationDialog._button[2].__internalId));
+      this._deleteConfirmationDialog._baseTabGroupSize = 2;        
+      this._deleteConfirmationDialog.popup();
+   } catch(err)
    {
-      this._closeBtnOKListener();
-      return;
+      appCtxt.getCurrentController()._closeView();
    }
-
-   if(notesFieldsContent.length < 24)
-   {
-      this._closeBtnOKListener();
-      return;      
-   }
-   
-   this._deleteConfirmationDialog = new ZmDialog({
-      title: ZmMsg.confirm,
-      parent: this.getShell(),
-      standardButtons: [DwtDialog.OK_BUTTON, DwtDialog.CANCEL_BUTTON],
-      disposeOnPopDown: true
-   });
-   var html = ZmMsg.apptSignificantChangesAttendee;
-
-   this._deleteConfirmationDialog.setContent(html);
-   this._deleteConfirmationDialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(this, this._closeBtnOKListener));
-   this._deleteConfirmationDialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(this, this._closeBtnCANCELListener));
-   this._deleteConfirmationDialog._tabGroup.addMember(document.getElementById(this._deleteConfirmationDialog._button[1].__internalId));
-   this._deleteConfirmationDialog._tabGroup.addMember(document.getElementById(this._deleteConfirmationDialog._button[2].__internalId));
-   this._deleteConfirmationDialog._baseTabGroupSize = 2;        
-   this._deleteConfirmationDialog.popup();
-
 };
 
 HPOZimlet.prototype._closeBtnOKListener = function() {
