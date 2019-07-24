@@ -169,13 +169,13 @@ HPOZimlet.prototype.enableSaveSend = function() {
    
       if(notesFieldsContentA.length < 20 || notesFieldsContentB.length < 20)   
       {
-         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSend"+appCtxt.getCurrentViewId()).setEnabled(false);
-         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSave"+appCtxt.getCurrentViewId()).setEnabled(false);
+         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSend").setEnabled(false);
+         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSave").setEnabled(false);
       }
       else
       {
-         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSend"+appCtxt.getCurrentViewId()).setEnabled(true);
-         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSave"+appCtxt.getCurrentViewId()).setEnabled(true);      
+         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSend").setEnabled(true);
+         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSave").setEnabled(true);      
       }   
    // Again
    HPOZimlet.prototype.enableSaveSend();
@@ -203,11 +203,11 @@ HPOZimlet.prototype.initializeToolbar = function(app, toolbar, controller, view)
          showTextInToolbar: true,
          tooltip: ZmMsg.sendInvites,
          enabled: false,
-         index: 1,
-         id: "HPOZimletSendBtn"+appCtxt.getCurrentViewId()
+         index: 1
 		};
-		if(!toolbar.getOp('HPOZimletOpSend')) {
-			var button = toolbar.createButton('HPOZimletOpSend'+appCtxt.getCurrentViewId(), buttonArgs);
+
+		if(!toolbar.getButton('HPOZimletOpSend')) {
+			var button = toolbar.createButton('HPOZimletOpSend', buttonArgs);
 			button.addSelectionListener(new AjxListener(this, this._sendBtnListener, [controller]));
 		}
 
@@ -217,11 +217,10 @@ HPOZimlet.prototype.initializeToolbar = function(app, toolbar, controller, view)
          showTextInToolbar: true,
          tooltip: ZmMsg.saveToCalendar,
          enabled: false,
-         index: 2,
-         id: "HPOZimletSaveBtn"+appCtxt.getCurrentViewId()
+         index: 2
 		};
-		if(!toolbar.getOp('HPOZimletOpSave')) {
-			var button = toolbar.createButton('HPOZimletOpSave'+appCtxt.getCurrentViewId(), buttonArgs);
+		if(!toolbar.getButton('HPOZimletOpSave')) {
+			var button = toolbar.createButton('HPOZimletOpSave', buttonArgs);
 			button.addSelectionListener(new AjxListener(this, this._saveBtnListener, [controller]));
 		}
 
@@ -231,11 +230,10 @@ HPOZimlet.prototype.initializeToolbar = function(app, toolbar, controller, view)
          showTextInToolbar: true,
          tooltip: ZmMsg.closeTooltip,
          enabled: true,
-         index: 3,
-         id: "HPOZimletCloseBtn"+appCtxt.getCurrentViewId()
+         index: 3
 		};
-		if(!toolbar.getOp('HPOZimletOpClose')) {
-			var button = toolbar.createButton('HPOZimletOpClose'+appCtxt.getCurrentViewId(), buttonArgs);
+		if(!toolbar.getButton('HPOZimletOpClose')) {
+			var button = toolbar.createButton('HPOZimletOpClose', buttonArgs);
 			button.addSelectionListener(new AjxListener(this, this._closeBtnListener, [controller]));
 		}
 	}
