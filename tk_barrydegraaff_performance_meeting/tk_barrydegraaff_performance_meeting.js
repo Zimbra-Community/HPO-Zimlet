@@ -53,7 +53,7 @@ HPOZimlet.prototype.onShowView = function(view) {
    
       setTimeout(function(){
          try {
-            var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;         
+            var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
          } catch(err)
          {
             return;
@@ -68,7 +68,7 @@ HPOZimlet.prototype.onShowView = function(view) {
 
          if(!document.getElementById('HPOZimlet-ApptFields'+targetHTMLId))
          {
-            var divHTML = '<div id="HPOZimlet-ApptFields'+targetHTMLId+'"><h1>Meeting Purpose</h1><textarea id="HPOZimletTextAreaPurpose'+targetHTMLId+'"></textarea><h1>Decisions To Be Made</h1><textarea id="HPOZimletTextAreaDecisions'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaPurposeOriginal'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaDecisionsOriginal'+targetHTMLId+'"></textarea>';         
+            var divHTML = '<div id="HPOZimlet-ApptFields'+targetHTMLId+'"><h1>Meeting Purpose (Mandatory)</h1><textarea id="HPOZimletTextAreaPurpose'+targetHTMLId+'"></textarea><h1>Decisions To Be Made (Mandatory)</h1><textarea id="HPOZimletTextAreaDecisions'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaPurposeOriginal'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaDecisionsOriginal'+targetHTMLId+'"></textarea>';         
             document.getElementById(targetHTMLId).insertAdjacentHTML('afterend',divHTML);
             tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaPurpose'+targetHTMLId);
             tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaDecisions'+targetHTMLId);
@@ -136,9 +136,47 @@ HPOZimlet.prototype.onShowView = function(view) {
             {
                tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent(DOMPurify.sanitize(content));
             }
-         }         
+         }
+         
+         //Add change listener
+         /*
+          * would be nice, but Zimbra captures the backspace button and such....
+         tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].on("change", function() { HPOZimlet.prototype.enableSaveSend();});
+         tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].on("change", function() { HPOZimlet.prototype.enableSaveSend();});
+         tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].on("keypress", function() { HPOZimlet.prototype.enableSaveSend();});
+         tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].on("keypress", function() { HPOZimlet.prototype.enableSaveSend();});*/
+         HPOZimlet.prototype.enableSaveSend();
+
+
       }, 0);
    }
+};
+
+HPOZimlet.prototype.enableSaveSend = function() {
+   setTimeout(function() {
+      try {
+      var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
+      var notesFieldsContentA = tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
+      var notesFieldsContentB = tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
+   
+      if(notesFieldsContentA.length < 20 || notesFieldsContentB.length < 20)   
+      {
+         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSend"+appCtxt.getCurrentViewId()).setEnabled(false);
+         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSave"+appCtxt.getCurrentViewId()).setEnabled(false);
+      }
+      else
+      {
+         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSend"+appCtxt.getCurrentViewId()).setEnabled(true);
+         appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSave"+appCtxt.getCurrentViewId()).setEnabled(true);      
+      }   
+   // Again
+   HPOZimlet.prototype.enableSaveSend();
+   } catch(err){
+      //we are destroyed
+   }
+   
+   // Every 3 sec
+   }, 100);
 };
 
 HPOZimlet.prototype.decode = function(str)
@@ -151,18 +189,17 @@ HPOZimlet.prototype.decode = function(str)
 HPOZimlet.prototype.initializeToolbar = function(app, toolbar, controller, view) {
    view = appCtxt.getViewTypeFromId(view);
 	if(view.indexOf('APPT')>-1) {
-   var targetHTMLId = appCtxt.getCurrentController()._composeView.__internalId;
-   console.log(targetHTMLId);
 		var buttonArgs = {
 			text	: ZmMsg.send,
          showImageInToolbar: false,
          showTextInToolbar: true,
          tooltip: ZmMsg.sendInvites,
-         enabled: true,
-         index: 1
+         enabled: false,
+         index: 1,
+         id: "HPOZimletSendBtn"+appCtxt.getCurrentViewId()
 		};
 		if(!toolbar.getOp('HPOZimletOpSend')) {
-			var button = toolbar.createButton('HPOZimletOpSend', buttonArgs);
+			var button = toolbar.createButton('HPOZimletOpSend'+appCtxt.getCurrentViewId(), buttonArgs);
 			button.addSelectionListener(new AjxListener(this, this._sendBtnListener, [controller]));
 		}
 
@@ -171,11 +208,12 @@ HPOZimlet.prototype.initializeToolbar = function(app, toolbar, controller, view)
          showImageInToolbar: false,
          showTextInToolbar: true,
          tooltip: ZmMsg.saveToCalendar,
-         enabled: true,
-         index: 2
+         enabled: false,
+         index: 2,
+         id: "HPOZimletSaveBtn"+appCtxt.getCurrentViewId()
 		};
 		if(!toolbar.getOp('HPOZimletOpSave')) {
-			var button = toolbar.createButton('HPOZimletOpSave', buttonArgs);
+			var button = toolbar.createButton('HPOZimletOpSave'+appCtxt.getCurrentViewId(), buttonArgs);
 			button.addSelectionListener(new AjxListener(this, this._saveBtnListener, [controller]));
 		}
 
@@ -186,10 +224,10 @@ HPOZimlet.prototype.initializeToolbar = function(app, toolbar, controller, view)
          tooltip: ZmMsg.closeTooltip,
          enabled: true,
          index: 3,
-         id: "HPOZimletCloseBtn"+targetHTMLId         
+         id: "HPOZimletCloseBtn"+appCtxt.getCurrentViewId()
 		};
 		if(!toolbar.getOp('HPOZimletOpClose')) {
-			var button = toolbar.createButton('HPOZimletOpClose', buttonArgs);
+			var button = toolbar.createButton('HPOZimletOpClose'+appCtxt.getCurrentViewId(), buttonArgs);
 			button.addSelectionListener(new AjxListener(this, this._closeBtnListener, [controller]));
 		}
 	}
@@ -223,7 +261,7 @@ HPOZimlet.prototype._saveNotes = function() {
    
    if(notesFieldsContentA.length < 20 || notesFieldsContentB.length < 20)
    {
-      HPOZimlet.prototype.status(ZmMsg.errorMissingRequired,ZmStatusView.LEVEL_WARNING);
+      HPOZimlet.prototype.status("Please enter more information for Meeting Purpose and Decisions Made.",ZmStatusView.LEVEL_WARNING);
       return false;
    }
    
