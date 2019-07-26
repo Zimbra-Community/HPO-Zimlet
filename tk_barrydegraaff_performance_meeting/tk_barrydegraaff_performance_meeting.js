@@ -76,7 +76,7 @@ HPOZimlet.prototype.onShowView = function(view) {
 
          if(!document.getElementById('HPOZimlet-ApptFields'+targetHTMLId))
          {
-            var divHTML = '<div id="HPOZimlet-ApptFields'+targetHTMLId+'"><h1>Meeting Purpose (Mandatory)</h1><textarea id="HPOZimletTextAreaPurpose'+targetHTMLId+'"></textarea><h1>Decisions To Be Made (Mandatory)</h1><textarea id="HPOZimletTextAreaDecisions'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaPurposeOriginal'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaDecisionsOriginal'+targetHTMLId+'"></textarea>';         
+            var divHTML = '<div id="HPOZimlet-ApptFields'+targetHTMLId+'"><h1>Meeting Purpose (Required)</h1><textarea id="HPOZimletTextAreaPurpose'+targetHTMLId+'"></textarea><h1>Decisions To Be Made (Required)</h1><textarea id="HPOZimletTextAreaDecisions'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaPurposeOriginal'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaDecisionsOriginal'+targetHTMLId+'"></textarea>';         
             document.getElementById(targetHTMLId).insertAdjacentHTML('afterend',divHTML);
             tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaPurpose'+targetHTMLId);
             tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaDecisions'+targetHTMLId);
