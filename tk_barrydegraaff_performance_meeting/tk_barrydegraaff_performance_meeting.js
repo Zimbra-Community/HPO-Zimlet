@@ -167,7 +167,7 @@ HPOZimlet.prototype.enableSaveSend = function() {
       var notesFieldsContentA = tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
       var notesFieldsContentB = tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
    
-      if(notesFieldsContentA.length < 20 || notesFieldsContentB.length < 20)   
+      if(notesFieldsContentA.split(" ").length < 3 || notesFieldsContentB.split(" ").length < 3)   
       {
          appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSend").setEnabled(false);
          appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSave").setEnabled(false);
