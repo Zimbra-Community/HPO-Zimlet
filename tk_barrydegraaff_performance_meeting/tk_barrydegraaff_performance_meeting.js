@@ -145,6 +145,12 @@ HPOZimlet.prototype.onShowView = function(view) {
                tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent(DOMPurify.sanitize(content));
             }
          }
+         else if (appCtxt.getCurrentController()._composeView.getAppt().viewMode == "NEW")
+         {
+             //viewmode = NEW? Make it a fresh appointment
+             tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
+             tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
+         }
          
          //Add change listener
          /*
