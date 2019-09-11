@@ -68,10 +68,7 @@ HPOZimlet.prototype.onShowView = function(view) {
          }
 
          appCtxt.getCurrentController()._composeView.setComposeMode(Dwt.HTML);
-         
-         //Set a nice indication of this Zimlet
-         appCtxt.getCurrentController()._composeView._apptEditView.setApptMessage("High Performance Meeting");
-         
+                 
          //Append UI components
 
          if(!document.getElementById('HPOZimlet-ApptFields'+targetHTMLId))
@@ -148,8 +145,12 @@ HPOZimlet.prototype.onShowView = function(view) {
          else if (appCtxt.getCurrentController()._composeView.getAppt().viewMode == "NEW")
          {
              //viewmode = NEW? Make it a fresh appointment
-             tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
-             tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
+             if(!appCtxt.getCurrentController()._composeView.HPOhasBeenCleared)
+             {
+                tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
+                tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
+                appCtxt.getCurrentController()._composeView.HPOhasBeenCleared = true;
+             }
          }
          
          //Add change listener

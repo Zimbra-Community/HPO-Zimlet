@@ -5,7 +5,7 @@ This Zimlet changes the New Appointment dialog and default meeting duration opti
 https://www.oxfordleadership.com/characteristics-high-performing-team-meetings/
 
       su zimbra
-      wget https://github.com/Zimbra-Community/HPO-Zimlet/releases/download/0.0.5/tk_barrydegraaff_performance_meeting.zip -O /tmp/tk_barrydegraaff_performance_meeting.zip
+      wget https://github.com/Zimbra-Community/HPO-Zimlet/releases/download/0.0.6/tk_barrydegraaff_performance_meeting.zip -O /tmp/tk_barrydegraaff_performance_meeting.zip
       cd /tmp
       zmzimletctl deploy /tmp/tk_barrydegraaff_performance_meeting.zip
 
