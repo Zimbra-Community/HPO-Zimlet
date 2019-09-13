@@ -55,6 +55,11 @@ HPOZimlet.prototype.onShowView = function(view) {
    options:			["1500", "1800", "3000", "3600", "4500", "5400", "6000", "7200"]
    });   
 
+   if(view.indexOf('APPTRO')>-1)
+   {
+      return;
+   }
+
    if(view.indexOf('APPT')>-1)
    {
 
@@ -203,6 +208,13 @@ HPOZimlet.prototype.decode = function(str)
 
 HPOZimlet.prototype.initializeToolbar = function(app, toolbar, controller, view) {
    view = appCtxt.getViewTypeFromId(view);
+   
+
+   if(view.indexOf('APPTRO')>-1)
+   {
+      return;
+   }
+   
 	if(view.indexOf('APPT')>-1) {
 		var buttonArgs = {
 			text	: ZmMsg.send,
