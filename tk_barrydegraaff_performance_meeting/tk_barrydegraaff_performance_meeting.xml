@@ -1,4 +1,4 @@
-<zimlet name="tk_barrydegraaff_performance_meeting" version="0.0.7" label="HPO Meetings" description="Changes the calendar UI for high performance meetings" target="main view-window">
+<zimlet name="tk_barrydegraaff_performance_meeting" version="0.0.8" label="HPO Meetings" description="Changes the calendar UI for high performance meetings" target="main view-window">
 	<include>tk_barrydegraaff_performance_meeting.js</include>
    <include>purify.js</include>
 	<handlerObject>tk_barrydegraaff_performance_meeting_HandlerObject</handlerObject>

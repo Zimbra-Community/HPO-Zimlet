@@ -78,7 +78,24 @@ HPOZimlet.prototype.onShowView = function(view) {
 
          if(!document.getElementById('HPOZimlet-ApptFields'+targetHTMLId))
          {
-            var divHTML = '<div id="HPOZimlet-ApptFields'+targetHTMLId+'"><h1>Meeting Purpose (Required)</h1><textarea id="HPOZimletTextAreaPurpose'+targetHTMLId+'"></textarea><h1>Decisions To Be Made (Required)</h1><textarea id="HPOZimletTextAreaDecisions'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaPurposeOriginal'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaDecisionsOriginal'+targetHTMLId+'"></textarea>';         
+            if(zimletInstance._zimletContext.getConfig("meetingPurposeMinWords")>0)
+            {
+               var meetingPurposeRequiredLabel="<small><small>(Required)</small></small>";
+            }
+            else
+            {
+               var meetingPurposeRequiredLabel="";
+            }
+            if(zimletInstance._zimletContext.getConfig("meetingDecisionsMinWords")>0)
+            {
+               var meetingDecisionsRequiredLabel="<small><small>(Required)</small></small>";
+            }
+            else
+            {
+               var meetingDecisionsRequiredLabel="";
+            }
+            
+            var divHTML = '<div id="HPOZimlet-ApptFields'+targetHTMLId+'"><h1>Meeting Purpose '+meetingPurposeRequiredLabel+'</h1><textarea id="HPOZimletTextAreaPurpose'+targetHTMLId+'"></textarea><h1>Decisions To Be Made '+meetingDecisionsRequiredLabel+'</h1><textarea id="HPOZimletTextAreaDecisions'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaPurposeOriginal'+targetHTMLId+'"></textarea><textarea style="display:none" id="HPOZimletTextAreaDecisionsOriginal'+targetHTMLId+'"></textarea>';         
             document.getElementById(targetHTMLId).insertAdjacentHTML('afterend',divHTML);
             tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaPurpose'+targetHTMLId);
             tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaDecisions'+targetHTMLId);
@@ -175,11 +192,12 @@ HPOZimlet.prototype.onShowView = function(view) {
 HPOZimlet.prototype.enableSaveSend = function() {
    setTimeout(function() {
       try {
+      var zimletInstance = appCtxt._zimletMgr.getZimletByName('tk_barrydegraaff_performance_meeting').handlerObject;
       var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
       var notesFieldsContentA = tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
       var notesFieldsContentB = tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
    
-      if(notesFieldsContentA.split(" ").length < 3 || notesFieldsContentB.split(" ").length < 3)   
+      if((notesFieldsContentA.split(" ").length < zimletInstance._zimletContext.getConfig("meetingPurposeMinWords") || notesFieldsContentB.split(" ").length < zimletInstance._zimletContext.getConfig("meetingDecisionsMinWords")) && (appCtxt.getCurrentView()._attendees.PERSON._array.length > 0))
       {
          appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSend").setEnabled(false);
          appCtxt.getCurrentController().getToolbar().getButton("HPOZimletOpSave").setEnabled(false);
@@ -231,7 +249,7 @@ HPOZimlet.prototype.initializeToolbar = function(app, toolbar, controller, view)
 		}
 
 		var buttonArgs = {
-			text	: ZmMsg.save,
+			text	: ZmMsg.saveDraft,
          showImageInToolbar: false,
          showTextInToolbar: true,
          tooltip: ZmMsg.saveToCalendar,
@@ -274,6 +292,7 @@ HPOZimlet.prototype._saveBtnListener = function() {
 
 
 HPOZimlet.prototype._saveNotes = function() {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('tk_barrydegraaff_performance_meeting').handlerObject;
    var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
    var notesFieldsContentA = tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
    var notesFieldsContentB = tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
@@ -284,7 +303,7 @@ HPOZimlet.prototype._saveNotes = function() {
       return false;
    }
    
-   if(notesFieldsContentA.length < 20 || notesFieldsContentB.length < 20)
+   if((notesFieldsContentA.split(" ").length < zimletInstance._zimletContext.getConfig("meetingPurposeMinWords") || notesFieldsContentB.split(" ").length < zimletInstance._zimletContext.getConfig("meetingDecisionsMinWords")) && (appCtxt.getCurrentView()._attendees.PERSON._array.length > 0))
    {
       HPOZimlet.prototype.status("Please enter more information for Meeting Purpose and Decisions Made.",ZmStatusView.LEVEL_WARNING);
       return false;
@@ -370,6 +389,17 @@ HPOZimlet.prototype._originalSaveBtnClicker = function() {
    //yes we do it twice on purpose, this is not a typo.
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SAVE').click();
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SAVE').click();
+   setTimeout(function(){
+      try{
+         if(appCtxt.getCurrentController()._currentViewType = "APPT")
+         {
+            appCtxt.getCurrentController().closeView();
+         }
+      } catch(err)
+      {
+         console.log(err);
+      }
+   }, 400);
 };
 
 HPOZimlet.prototype._originalSendBtnClicker = function() {
