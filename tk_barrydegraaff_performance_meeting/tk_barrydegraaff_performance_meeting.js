@@ -69,6 +69,7 @@ HPOZimlet.prototype.onShowView = function(view) {
             var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
          } catch(err)
          {
+            console.log(err);
             return;
          }
 
@@ -211,6 +212,7 @@ HPOZimlet.prototype.enableSaveSend = function() {
    HPOZimlet.prototype.enableSaveSend();
    } catch(err){
       //we are destroyed
+      console.log(err);
    }
    
    // Every 3 sec
@@ -297,11 +299,12 @@ HPOZimlet.prototype._saveNotes = function() {
    var notesFieldsContentA = tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
    var notesFieldsContentB = tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
    
-   if(appCtxt.getCurrentController()._composeView.getAppt().name.length < 1)
+   if(document.getElementById(appCtxt.getCurrentController()._composeView._apptEditView.uid+'_subject_input').value.length < 1)
    {
       HPOZimlet.prototype.status(ZmMsg.errorMissingSubject,ZmStatusView.LEVEL_WARNING);
       return false;
    }
+   
    
    if((notesFieldsContentA.split(" ").length < zimletInstance._zimletContext.getConfig("meetingPurposeMinWords") || notesFieldsContentB.split(" ").length < zimletInstance._zimletContext.getConfig("meetingDecisionsMinWords")) && (appCtxt.getCurrentView()._attendees.PERSON._array.length > 0))
    {
@@ -311,8 +314,8 @@ HPOZimlet.prototype._saveNotes = function() {
    
    var bodyText = '<div style="font-family: arial\, helvetica\, sans-serif\; font-size: 12pt\; color: #000000"><div><span style="text-decoration:underline" data-mce-style="text-decoration: underline\;"><strong>Meeting Purpose</strong></span></div><div></div><div style="text-transform:none">'+notesFieldsContentA+'</div><div style="text-transform:capitalize">&nbsp;</div><div></div><div><span style="text-decoration: underline\;" data-mce-style="text-decoration: underline\;"><strong>Decisions To Be Made</strong></span></div><div></div><div style="text-transform:none">'+notesFieldsContentB+'</div><div style="text-transform:capitalize">&nbsp;</div></div>';
    tinyMCE.editors[targetHTMLId+'_body'].setContent(DOMPurify.sanitize(bodyText));
-   tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
-   tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
+   //tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
+   //tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
    return true;
 };
 
@@ -364,6 +367,7 @@ HPOZimlet.prototype._closeBtnListener = function() {
       this._deleteConfirmationDialog.popup();
    } catch(err)
    {
+      console.log(err);
       appCtxt.getCurrentController()._closeView();
    }
 };
@@ -376,7 +380,7 @@ HPOZimlet.prototype._closeBtnOKListener = function() {
    document.getElementById(id).parentNode.removeChild(document.getElementById(id));
    try{
       this._deleteConfirmationDialog.popdown();
-   } catch (err) {}   
+   } catch (err) {console.log(err)}
    appCtxt.getCurrentController().closeView();
 };
 
@@ -389,7 +393,7 @@ HPOZimlet.prototype._originalSaveBtnClicker = function() {
    //yes we do it twice on purpose, this is not a typo.
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SAVE').click();
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SAVE').click();
-   setTimeout(function(){
+/*   setTimeout(function(){
       try{
          if(appCtxt.getCurrentController()._currentViewType = "APPT")
          {
@@ -400,6 +404,7 @@ HPOZimlet.prototype._originalSaveBtnClicker = function() {
          console.log(err);
       }
    }, 400);
+   */
 };
 
 HPOZimlet.prototype._originalSendBtnClicker = function() {
@@ -407,7 +412,7 @@ HPOZimlet.prototype._originalSendBtnClicker = function() {
    try{
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SEND_INVITE').click();
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SEND_INVITE').click();
-   }catch(err){}
+   }catch(err){console.log(err)}
 };
 
 HPOZimlet.prototype._originalCloseBtnClicker = function() {
