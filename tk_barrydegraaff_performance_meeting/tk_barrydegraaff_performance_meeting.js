@@ -46,6 +46,8 @@ try {
 };
 
 HPOZimlet.prototype.onShowView = function(view) {
+   console.log('onShowView');
+   console.log(view);
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('tk_barrydegraaff_performance_meeting').handlerObject;
 
    ZmPref.registerPref("CAL_DEFAULT_APPT_DURATION", {
@@ -145,10 +147,16 @@ HPOZimlet.prototype.onShowView = function(view) {
             content = content.replace(/(\r|\n)/g, "");
 
             var matches = content.match(/<div style="text-transform:none">.*?<div style="text-transform:capitalize">/g);
+            if(!matches)
+            {
+               //condition happens when saving draft, switching tabs, but not sending
+               var matches = content.match(/<div style="text-transform: none;" data-mce-style="text-transform: none;">.*?<div style="text-transform: capitalize;" data-mce-style="text-transform: capitalize;">/g);
+            }
 
             if(matches)
             {
                //remove `data separators`
+               console.log('match OK');
                matches[0] = matches[0].replace(/<div style="text-transform:none">/g,"");
                matches[0] = matches[0].replace(/<div style="text-transform:capitalize">/g,"");
                matches[1] = matches[1].replace(/<div style="text-transform:none">/g,"");
@@ -162,6 +170,7 @@ HPOZimlet.prototype.onShowView = function(view) {
             }
             else
             {
+               console.log('match fail');
                tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent(DOMPurify.sanitize(content));
             }
          }
@@ -170,8 +179,7 @@ HPOZimlet.prototype.onShowView = function(view) {
              //viewmode = NEW? Make it a fresh appointment
              if(!appCtxt.getCurrentController()._composeView.HPOhasBeenCleared)
              {
-                tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
-                tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
+                HPOZimlet.prototype._clearPurposeAndDecisions();
                 appCtxt.getCurrentController()._composeView.HPOhasBeenCleared = true;
              }
          }
@@ -368,6 +376,7 @@ HPOZimlet.prototype._closeBtnListener = function() {
    } catch(err)
    {
       console.log(err);
+      appCtxt.getCurrentController()._composeView.HPOhasBeenCleared = false;
       appCtxt.getCurrentController()._closeView();
    }
 };
@@ -377,10 +386,11 @@ HPOZimlet.prototype._closeBtnOKListener = function() {
    var id = 'HPOZimlet-ApptFields'+targetHTMLId;
    tinyMCE.execCommand("mceRemoveEditor",false,'HPOZimletTextAreaPurpose'+targetHTMLId);
    tinyMCE.execCommand("mceRemoveEditor",false,'HPOZimletTextAreaDecisions'+targetHTMLId);
-   document.getElementById(id).parentNode.removeChild(document.getElementById(id));
+   document.getElementById(id).parentNode.removeChild(document.getElementById(id));   
    try{
       this._deleteConfirmationDialog.popdown();
    } catch (err) {console.log(err)}
+   appCtxt.getCurrentController()._composeView.HPOhasBeenCleared = false;
    appCtxt.getCurrentController().closeView();
 };
 
@@ -391,6 +401,7 @@ function () {
 
 HPOZimlet.prototype._originalSaveBtnClicker = function() {
    //yes we do it twice on purpose, this is not a typo.
+   appCtxt.getCurrentController()._composeView.HPOhasBeenCleared = false;
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SAVE').click();
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SAVE').click();
 /*   setTimeout(function(){
@@ -410,13 +421,15 @@ HPOZimlet.prototype._originalSaveBtnClicker = function() {
 HPOZimlet.prototype._originalSendBtnClicker = function() {
    //yes we do it twice on purpose, this is not a typo.
    try{
+   appCtxt.getCurrentController()._composeView.HPOhasBeenCleared = false;   
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SEND_INVITE').click();
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SEND_INVITE').click();
    }catch(err){console.log(err)}
 };
 
-HPOZimlet.prototype._originalCloseBtnClicker = function() {
-   //yes we do it twice on purpose, this is not a typo.
-   document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__CANCEL').click();
-   document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__CANCEL').click();
+HPOZimlet.prototype._clearPurposeAndDecisions = function() {
+   console.log('Fields are cleared');
+   var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
+   tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
+   tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
 };
