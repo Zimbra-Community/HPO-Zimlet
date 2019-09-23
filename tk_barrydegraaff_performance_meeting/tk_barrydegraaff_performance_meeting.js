@@ -42,12 +42,31 @@ var HPOZimlet = tk_barrydegraaff_performance_meeting_HandlerObject;
 HPOZimlet.prototype.init = function() {
 try {
    AjxDispatcher.require(["Calendar", "TinyMCE", "CalendarAppt","PreferencesCore","Preferences"]);
-} catch (err) { console.log('HPOZimlet err'+err);}
+
+   ZmApptComposeView.prototype.cleanup = 
+   function() {
+      //console.log('ZmApptComposeView.prototype.cleanup overridden was called.');
+      //console.log(this);
+      this.HPOhasBeenCleared = false;
+      // clear attendees lists
+      this._attendees[ZmCalBaseItem.PERSON]		= new AjxVector();
+      this._attendees[ZmCalBaseItem.LOCATION]		= new AjxVector();
+      this._attendees[ZmCalBaseItem.EQUIPMENT]	= new AjxVector();
+   
+      this._attendeeKeys[ZmCalBaseItem.PERSON]	= {};
+      this._attendeeKeys[ZmCalBaseItem.LOCATION]	= {};
+      this._attendeeKeys[ZmCalBaseItem.EQUIPMENT]	= {};
+   
+       this._apptEditView.cleanup();
+   };
+   
+} catch (err) { //console.log('HPOZimlet err'+err);
+   }
 };
 
 HPOZimlet.prototype.onShowView = function(view) {
-   console.log('onShowView');
-   console.log(view);
+   //console.log('onShowView');
+   //console.log(view);
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('tk_barrydegraaff_performance_meeting').handlerObject;
 
    ZmPref.registerPref("CAL_DEFAULT_APPT_DURATION", {
@@ -71,14 +90,13 @@ HPOZimlet.prototype.onShowView = function(view) {
             var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
          } catch(err)
          {
-            console.log(err);
+            //console.log(err);
             return;
          }
 
          appCtxt.getCurrentController()._composeView.setComposeMode(Dwt.HTML);
-                 
-         //Append UI components
 
+         //Append UI components
          if(!document.getElementById('HPOZimlet-ApptFields'+targetHTMLId))
          {
             if(zimletInstance._zimletContext.getConfig("meetingPurposeMinWords")>0)
@@ -139,39 +157,56 @@ HPOZimlet.prototype.onShowView = function(view) {
          //Parse existing meeting data
          if(appCtxt.getCurrentController()._composeView.getAppt().viewMode == "EDIT")
          {
-            //This is loads of fun
-            //var content = tinyMCE.editors[targetHTMLId+'_body'].getContent();
-            //var content = appCtxt.getCurrentController()._composeView.getAppt().getNotesPart('text/html');
-            var content = appCtxt.getCurrentController()._composeView._setData[0].getNotesPart('text/html');
-            content = HPOZimlet.prototype.decode(content);
-            content = content.replace(/(\r|\n)/g, "");
-
-            var matches = content.match(/<div style="text-transform:none">.*?<div style="text-transform:capitalize">/g);
-            if(!matches)
+            //It is an emtpy (not yet loaded) appointment, try and fetch it
+            if(true)
             {
-               //condition happens when saving draft, switching tabs, but not sending
-               var matches = content.match(/<div style="text-transform: none;" data-mce-style="text-transform: none;">.*?<div style="text-transform: capitalize;" data-mce-style="text-transform: capitalize;">/g);
-            }
-
-            if(matches)
-            {
-               //remove `data separators`
-               console.log('match OK');
-               matches[0] = matches[0].replace(/<div style="text-transform:none">/g,"");
-               matches[0] = matches[0].replace(/<div style="text-transform:capitalize">/g,"");
-               matches[1] = matches[1].replace(/<div style="text-transform:none">/g,"");
-               matches[1] = matches[1].replace(/<div style="text-transform:capitalize">/g,"");            
-               tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent(DOMPurify.sanitize(matches[0]));
-               tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent(DOMPurify.sanitize(matches[1]));
+               //This is loads of fun
+               var content = tinyMCE.editors[targetHTMLId+'_body'].getContent();
+               //var content = appCtxt.getCurrentController()._composeView.getAppt().getNotesPart('text/html');
+               //var content = appCtxt.getCurrentController()._composeView._setData[0].getNotesPart('text/html');
+               content = HPOZimlet.prototype.decode(content);
+               content = content.replace(/(\r|\n)/g, "");
+               console.log(content);
+   
+               var matches = content.match(/<div style="text-transform:none">.*?<div style="text-transform:capitalize">/g);
+               if(!matches)
+               {
+                  //condition happens when saving draft, switching tabs, but not sending
+                  var matches = content.match(/<div style="text-transform: none;" data-mce-style="text-transform: none;">.*?<div style="text-transform: capitalize;" data-mce-style="text-transform: capitalize;">/g);
+               }
                
-               //store the processed value of tinyMCE editor upon loading so we can check for changes
-               document.getElementById('HPOZimletTextAreaPurposeOriginal'+targetHTMLId).value=tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
-               document.getElementById('HPOZimletTextAreaDecisionsOriginal'+targetHTMLId).value=tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
-            }
-            else
-            {
-               console.log('match fail');
-               tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent(DOMPurify.sanitize(content));
+               if(!matches)
+               {
+                  var matches = content.match(/<div style="text-transform: none;">.*?<div style="text-transform: capitalize;">/g);
+               }
+   
+               if(matches)
+               {
+                  //remove `data separators`
+                  //console.log('match OK');
+                  tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaPurpose'+targetHTMLId);
+                  tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaDecisions'+targetHTMLId);                  
+                  
+                  matches[0] = matches[0].replace(/<div style="text-transform:none">/g,"");
+                  matches[0] = matches[0].replace(/<div style="text-transform:capitalize">/g,"");
+                  matches[1] = matches[1].replace(/<div style="text-transform:none">/g,"");
+                  matches[1] = matches[1].replace(/<div style="text-transform:capitalize">/g,"");            
+                  matches[0] = matches[0].replace(/<div style="text-transform: none;">/g,"");
+                  matches[0] = matches[0].replace(/<div style="text-transform: capitalize;">/g,"");
+                  matches[1] = matches[1].replace(/<div style="text-transform: none;">/g,"");
+                  matches[1] = matches[1].replace(/<div style="text-transform: capitalize;">/g,"");
+                  tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent(DOMPurify.sanitize(matches[0]));
+                  tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent(DOMPurify.sanitize(matches[1]));
+                  
+                  //store the processed value of tinyMCE editor upon loading so we can check for changes
+                  document.getElementById('HPOZimletTextAreaPurposeOriginal'+targetHTMLId).value=tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
+                  document.getElementById('HPOZimletTextAreaDecisionsOriginal'+targetHTMLId).value=tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
+               }
+               else
+               {
+                  //console.log('match fail');
+                  tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent(DOMPurify.sanitize(content));
+               }
             }
          }
          else if (appCtxt.getCurrentController()._composeView.getAppt().viewMode == "NEW")
@@ -185,12 +220,10 @@ HPOZimlet.prototype.onShowView = function(view) {
          }
          
          //Add change listener
-         /*
-          * would be nice, but Zimbra captures the backspace button and such....
-         tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].on("change", function() { HPOZimlet.prototype.enableSaveSend();});
-         tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].on("change", function() { HPOZimlet.prototype.enableSaveSend();});
-         tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].on("keypress", function() { HPOZimlet.prototype.enableSaveSend();});
-         tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].on("keypress", function() { HPOZimlet.prototype.enableSaveSend();});*/
+         tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].on("change", function() { HPOZimlet.prototype._saveNotesFromChangeEvent(targetHTMLId);});
+         tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].on("change", function() { HPOZimlet.prototype._saveNotesFromChangeEvent(targetHTMLId);});
+         tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].on("keypress", function() { HPOZimlet.prototype._saveNotesFromChangeEvent(targetHTMLId);});
+         tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].on("keypress", function() { HPOZimlet.prototype._saveNotesFromChangeEvent(targetHTMLId);});
          HPOZimlet.prototype.enableSaveSend();
 
 
@@ -220,7 +253,7 @@ HPOZimlet.prototype.enableSaveSend = function() {
    HPOZimlet.prototype.enableSaveSend();
    } catch(err){
       //we are destroyed
-      console.log(err);
+      //console.log(err);
    }
    
    // Every 3 sec
@@ -300,7 +333,6 @@ HPOZimlet.prototype._saveBtnListener = function() {
    }   
 };
 
-
 HPOZimlet.prototype._saveNotes = function() {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('tk_barrydegraaff_performance_meeting').handlerObject;
    var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
@@ -319,13 +351,29 @@ HPOZimlet.prototype._saveNotes = function() {
       HPOZimlet.prototype.status("Please enter more information for Meeting Purpose and Decisions Made.",ZmStatusView.LEVEL_WARNING);
       return false;
    }
-   
+
+   //notesFieldsContentA = notesFieldsContentA.replace(/text-transform:/gm,'dummy:');
+   //notesFieldsContentB = notesFieldsContentB.replace(/text-transform:/gm,'dummy:');   
    var bodyText = '<div style="font-family: arial\, helvetica\, sans-serif\; font-size: 12pt\; color: #000000"><div><span style="text-decoration:underline" data-mce-style="text-decoration: underline\;"><strong>Meeting Purpose</strong></span></div><div></div><div style="text-transform:none">'+notesFieldsContentA+'</div><div style="text-transform:capitalize">&nbsp;</div><div></div><div><span style="text-decoration: underline\;" data-mce-style="text-decoration: underline\;"><strong>Decisions To Be Made</strong></span></div><div></div><div style="text-transform:none">'+notesFieldsContentB+'</div><div style="text-transform:capitalize">&nbsp;</div></div>';
    tinyMCE.editors[targetHTMLId+'_body'].setContent(DOMPurify.sanitize(bodyText));
    //tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
    //tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
    return true;
 };
+
+
+HPOZimlet.prototype._saveNotesFromChangeEvent = function(targetHTMLId) {
+   console.log("_saveNotesFromChangeEvent");
+   console.log(targetHTMLId);
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('tk_barrydegraaff_performance_meeting').handlerObject;
+   var notesFieldsContentA = tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
+   var notesFieldsContentB = tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
+   //notesFieldsContentA = notesFieldsContentA.replace(/text-transform:/gm,'dummy:');
+   //notesFieldsContentB = notesFieldsContentB.replace(/text-transform:/gm,'dummy:');
+   var bodyText = '<div style="font-family: arial\, helvetica\, sans-serif\; font-size: 12pt\; color: #000000"><div><span style="text-decoration:underline" data-mce-style="text-decoration: underline\;"><strong>Meeting Purpose</strong></span></div><div></div><div style="text-transform:none">'+notesFieldsContentA+'</div><div style="text-transform:capitalize">&nbsp;</div><div></div><div><span style="text-decoration: underline\;" data-mce-style="text-decoration: underline\;"><strong>Decisions To Be Made</strong></span></div><div></div><div style="text-transform:none">'+notesFieldsContentB+'</div><div style="text-transform:capitalize">&nbsp;</div></div>';
+   tinyMCE.editors[targetHTMLId+'_body'].setContent(DOMPurify.sanitize(bodyText));
+};
+
 
 HPOZimlet.prototype.status =
   function(text, type) {
@@ -375,7 +423,7 @@ HPOZimlet.prototype._closeBtnListener = function() {
       this._deleteConfirmationDialog.popup();
    } catch(err)
    {
-      console.log(err);
+      //console.log(err);
       appCtxt.getCurrentController()._composeView.HPOhasBeenCleared = false;
       appCtxt.getCurrentController()._closeView();
    }
@@ -389,7 +437,8 @@ HPOZimlet.prototype._closeBtnOKListener = function() {
    document.getElementById(id).parentNode.removeChild(document.getElementById(id));   
    try{
       this._deleteConfirmationDialog.popdown();
-   } catch (err) {console.log(err)}
+   } catch (err) {//console.log(err);
+      }
    appCtxt.getCurrentController()._composeView.HPOhasBeenCleared = false;
    appCtxt.getCurrentController().closeView();
 };
@@ -412,7 +461,7 @@ HPOZimlet.prototype._originalSaveBtnClicker = function() {
          }
       } catch(err)
       {
-         console.log(err);
+         //console.log(err);
       }
    }, 400);
    */
@@ -424,12 +473,16 @@ HPOZimlet.prototype._originalSendBtnClicker = function() {
    appCtxt.getCurrentController()._composeView.HPOhasBeenCleared = false;   
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SEND_INVITE').click();
    document.getElementById('zb__'+appCtxt.getCurrentController()._currentViewId+'__SEND_INVITE').click();
-   }catch(err){console.log(err)}
+   }catch(err){//console.log(err)
+      }
 };
 
 HPOZimlet.prototype._clearPurposeAndDecisions = function() {
-   console.log('Fields are cleared');
+   //console.log('Fields are cleared');
    var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
    tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
    tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
 };
+
+
+
