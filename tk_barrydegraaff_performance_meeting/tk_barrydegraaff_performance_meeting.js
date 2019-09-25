@@ -166,7 +166,7 @@ HPOZimlet.prototype.onShowView = function(view) {
                //var content = appCtxt.getCurrentController()._composeView._setData[0].getNotesPart('text/html');
                content = HPOZimlet.prototype.decode(content);
                content = content.replace(/(\r|\n)/g, "");
-               console.log(content);
+               //console.log(content);
    
                var matches = content.match(/<div style="text-transform:none">.*?<div style="text-transform:capitalize">/g);
                if(!matches)
@@ -363,8 +363,8 @@ HPOZimlet.prototype._saveNotes = function() {
 
 
 HPOZimlet.prototype._saveNotesFromChangeEvent = function(targetHTMLId) {
-   console.log("_saveNotesFromChangeEvent");
-   console.log(targetHTMLId);
+   //console.log("_saveNotesFromChangeEvent");
+   //console.log(targetHTMLId);
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('tk_barrydegraaff_performance_meeting').handlerObject;
    var notesFieldsContentA = tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].getContent();
    var notesFieldsContentB = tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].getContent();
@@ -480,6 +480,8 @@ HPOZimlet.prototype._originalSendBtnClicker = function() {
 HPOZimlet.prototype._clearPurposeAndDecisions = function() {
    //console.log('Fields are cleared');
    var targetHTMLId = appCtxt.getCurrentController()._composeView._apptEditView._notesHtmlEditor.__internalId;
+   tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaPurpose'+targetHTMLId);
+   tinyMCE.execCommand("mceAddEditor",false,'HPOZimletTextAreaDecisions'+targetHTMLId);
    tinyMCE.editors['HPOZimletTextAreaPurpose'+targetHTMLId].setContent('');
    tinyMCE.editors['HPOZimletTextAreaDecisions'+targetHTMLId].setContent('');
 };
